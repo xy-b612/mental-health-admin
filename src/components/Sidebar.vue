@@ -1,5 +1,5 @@
 <template>
-  <el-aside :width="isCollapse?'64px':'264px'">
+  <el-aside :width="isCollapse ? '64px' : '264px'">
     <el-menu :collapse="isCollapse" :collapse-transition="false" default-active="2" class="menu-style" router>
       <div class="brand">
         <el-image style="width: 50px;height: 50px;margin-right: 10px;" :src="iconURL" alt="loge" />
@@ -8,7 +8,7 @@
           <p class="brand-subtitle">管理后台</p>
         </div>
       </div>
-      <el-menu-item v-for="item in router.options.routes[0].children" :key="item.path" :index="item.path">
+      <el-menu-item v-for="item in router.options.routes[0].children" :key="item.path" :index="'/back/' + item.path">
         <el-icon>
           <component :is="item.meta.icon" />
         </el-icon>
