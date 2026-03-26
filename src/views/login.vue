@@ -20,7 +20,7 @@
       label-position="top"
       >
       <el-form-item>
-        <el-input v-model="formData.username" size="large" palceholder="请输入用户名"></el-input>
+        <el-input v-model="formData.username" size="large" placeholder="请输入用户名"></el-input>
       </el-form-item>
       <el-form-item>
         <el-input v-model="formData.password" size="large" placeholder="请输入密码" type="password" show-password></el-input>
@@ -36,6 +36,8 @@
 
 <script setup>
 import {ref,reactive} from 'vue'
+import { login } from '@/api/admin'
+import {useRouter} from 'vue-router'
 
 const ruleformRef = ref()
 
@@ -49,15 +51,30 @@ const rules = reactive({
     {required:true,message:'请输入用户名',trigger:'blur'}
   ],
   password: [
-    {required:true,message:'请输入用户名',trigger:'blur'}
+    {required:true,message:'请输入密码',trigger:'blur'}
   ]
 })
 
+const router = useRouter()
 const submitForm = async (forEl)=>{
   if(!forEl) return
   await forEl.validate((valid,fields)=>{
     if(valid) {
-      console.log(fields)
+      login(formData).then(data=>{
+        //判断token是否存在
+        if(!data.token){
+          return console.error('登录失败')
+        }
+        //登录成功，保存token和用户信息
+        localStorage.setItem('token',data.token)
+        localStorage.setItem('userInfo',JSON.stringify(data.userInfo))
+      //根据用户角色确定跳转的路径
+      if(data.userInfo.userType===2) {
+        router.push('/back/dashboard')
+      }else {
+        
+      }
+      })
     }
   })
 }
