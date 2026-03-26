@@ -45,8 +45,8 @@
     layout="prev, pager, next" 
     :total="pagination.total" 
     @change="handleChange" />
+    <ArticleDialog v-model:modelValue="dialogVisible" :categoryList="categoryList"/>
   </div>
-  <ArticleDialog v-model:modelValue="dialogVisible" :categoryList="categoryList"/>
 </template>
 
 <script setup>
@@ -106,7 +106,7 @@ const handleChange = (page)=>{
 //分类映射
 const categoryMap = reactive({})
 //分类列表
-const categoryList = reactive([])
+const categoryList =  ref([])
 
 //列表数据
 const tableData = ref([])
@@ -123,6 +123,7 @@ onMounted(async () => {
       value: item.id
     }
   })
+  console.log(categoryList.value)
   formItem[1].options = categoryList.value
 
   //获取列表
