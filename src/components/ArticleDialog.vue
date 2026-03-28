@@ -1,8 +1,8 @@
 <template>
-  <el-dialog title="文章标题" v-model="dialogVisible" width="50%" @close="handleClose">
+  <el-dialog :title="isEdit ? '编辑文章' : '新增文章'" v-model="dialogVisible" width="50%" @close="handleClose">
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
-        <el-input v-model="formData.title" palceholder="请输入文章标题" maxlength="200" show-word-limit clearable></el-input>
+        <el-input v-model="formData.title" placeholder="请输入文章标题" maxlength="200" show-word-limit clearable></el-input>
       </el-form-item>
       <el-form-item label="所属分类" prop="categoryId">
         <el-select v-model="formData.categoryId" placeholder="请选择分类">
@@ -22,8 +22,8 @@
       </el-form-item>
       <el-form-item label="封面图片">
         <div class="cover-upload">
-          <el-upload class="avatar-upload" action="#" :before-upload="beforeUpload" :http-request="handleUploadRequest" :show-file-list="false"
-            accept="image/*">
+          <el-upload class="avatar-upload" action="#" :before-upload="beforeUpload" :http-request="handleUploadRequest"
+            :show-file-list="false" accept="image/*">
             <div v-if="!imgUrl" class="cover-palceholder">
               <p>点击上传封面</p>
             </div>
@@ -34,24 +34,27 @@
           </div>
         </div>
       </el-form-item>
-      <el-form-item>
-        <RichTextEditor
-        v-model="formData.content"
-        placeholder="请输入文章内容，支持富文本格式\n\n可以用于加粗、斜体、列表、标题等格式来丰富文章内容。"
-        :maxCharCount="5000"
-        @change="handleContentChange"
-        @created="handleEditorCreated"
-        min-height="400px"
-        />
+      <el-form-item label="文章内容" prop="content">
+        <RichTextEditor v-model="formData.content" placeholder="请输入文章内容，支持富文本格式\n\n可以用于加粗、斜体、列表、标题等格式来丰富文章内容。"
+          :maxCharCount="5000" @change="handleContentChange" @created="handleEditorCreated" min-height="400px" />
       </el-form-item>
     </el-form>
+    <div v-if="btnPreview">
+      <h3>内容预览</h3>
+      <div v-html="formData.content"></div>
+    </div>
+    <template #footer>
+      <el-button @click="btnPreview = !btnPreview">{{ btnPreview ? '隐藏预览' : '预览效果' }}</el-button>
+      <el-button @click="handleClose">取消</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="loading">{{ isEdit ? '更新文章' : '创建文章' }}</el-button>
+    </template>
   </el-dialog>
 </template>
 
 <script setup>
 import { ElMessage } from 'element-plus'
-import { ref, reactive, computed } from 'vue'
-import { uploadFile } from '@/api/admin'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
+import { uploadFile, createArtical, updateArticle } from '@/api/admin'
 import { fileBaseUrl } from '@/config/index.js'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 
@@ -63,10 +66,14 @@ const props = defineProps({
   categoryList: {
     type: Array,
     default: () => []
+  },
+  article: {
+    type: Object,
+    default: null
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogVisible = computed({
   get() {
@@ -76,9 +83,33 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   }
 })
+// 两个叹号代表转换为布尔类型
+const isEdit = computed(() => !!props.article?.id)
+
+//监听编辑数据
+watch(() => props.article, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      Object.assign(formData, newVal)
+      //使用现有ID
+      businessId.value = newVal.id
+      //封面的url
+      imgUrl.value = fileBaseUrl + newVal.coverImage
+    })
+
+  }
+})
 
 const handleClose = () => {
-
+  //重置表单
+  formRef.value.resetFields()
+  //重置ID
+  businessId.value = null
+  //重置标签
+  formData.tagArray = []
+  //重置图片
+  handleRemove()
+  emit('update:modelValue', false)
 }
 
 //表单数据
@@ -87,7 +118,7 @@ const formData = reactive(
     "title": "",
     "content": "",
     "coverImage": "",
-    "categoryId": 1,
+    "categoryId": "",
     "summary": "",
     "tags": "",
     "id": ""
@@ -101,6 +132,10 @@ const rules = reactive({
   ],
   categoryId: [
     { required: true, message: '请选择分类', trigger: 'blur' }
+  ],
+  content: [
+    { required: true, message: '请输入文章内容', trigger: 'blur' },
+    { max: 5000, message: '文章内容最多5000个字符', trigger: 'blur' }
   ]
 })
 
@@ -132,12 +167,12 @@ const beforeUpload = (file) => {
   return true
 }
 
+const businessId = ref(null)
 const handleUploadRequest = async ({ file }) => {
   //UUID生成
-  const businessId = crypto.randomUUID()
-
+  businessId.value = crypto.randomUUID()
   const fileRes = await uploadFile(file, {
-    businessId: businessId
+    businessId: businessId.value
   })
 
   console.log(fileRes)
@@ -152,14 +187,53 @@ const handleRemove = () => {
 }
 
 //富文本
-const handleContentChange = ()=>{
-
+const handleContentChange = (data) => {
+  console.log(data, '富文本')
+  formData.content = data.html
 }
 
-const handleEditorCreated = ()=>{
-
+const editorInstance = ref(null)
+const handleEditorCreated = (editor) => {
+  editorInstance.value = editor
+  //编辑
+  if (formData.content && editor) {
+    nextTick(() => {
+      editor.setHtml(formData.content)
+    })
+  }
 }
 
+const btnPreview = ref(false)
+
+//提交
+const formRef = ref()
+const loading = ref(false)
+const handleSubmit = () => {
+  formRef.value.validate((valid, fields) => {
+    if (valid) {
+      loading.value = true
+    }
+    // console.log(formData, 'formData')
+    const submitData = {
+      ...formData,
+      tags: formData.tagArray.join(','),
+    }
+    delete submitData.tagArray
+
+    if (!isEdit.value) {
+      submitData.id = businessId.value
+      createArtical(submitData).then(res => {
+        loading.value = false
+        emit('success')
+      })
+    } else {
+      updateArticle(props.article.id, submitData).then(res => {
+        loading.value = false
+        emit('success')
+      })
+    }
+  })
+}
 </script>
 
 <style scoped lang="scss">
