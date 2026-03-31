@@ -1,11 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
 import BackendLayout from '@/components/BackendLayout.vue';
 import AuthLayout from "@/components/AuthLayout.vue";
+import FrontendLayout from "@/components/FrontendLayout.vue";
 
 //路由配置
+//后台路由
 const backendRoutes = [
   {
     path: '/back',
+    redirect: '/back/dashboard',
     component: BackendLayout,
     children: [
       {
@@ -63,11 +66,68 @@ const backendRoutes = [
     ]
   }
 ]
+//前台路由
+const frontendRoutes = [
+  {
+    path: '/',
+    component: FrontendLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/home.vue')
+      },
+      {
+        path: 'consultation',
+        component: () => import('@/views/consultation.vue')
+      },
+      {
+        path: 'emotion-diary',
+        component: () => import('@/views/emotionDiary.vue')
+      },
+      {
+        path: 'knowledge',
+        component: () => import('@/views/frontendKnowledge.vue')
+      }
+    ]
+  }
+]
 
 //创建路由实例
 const router = createRouter({
   history: createWebHistory(),
-  routes: backendRoutes
+  routes: [...backendRoutes, ...frontendRoutes]
+})
+
+//路由前置守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  //当前用户是否登录
+  if (token) {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+    //后台
+    if (userInfo.userType === 2) {
+      if (to.path.startsWith('/back')) {
+        next()
+      } else {
+        next('/back/dashboard')
+      }
+    } else if (userInfo.userType === 1) {
+      //前台
+
+
+    }
+
+
+
+  } else {
+    if (to.path.startsWith('/back')) {
+      //后台管理跳转回登录页面
+      next('/auth/login')
+    } else {
+      //前台用户跳转回首页
+      next()
+    }
+  }
 })
 
 //暴露路由实例
