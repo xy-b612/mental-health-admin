@@ -16,5 +16,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 //挂载插件、全局配置
 app.use(ElementPlus).use(router).use(pinia)
+console.log('当前路由：', router.currentRoute.value)
+console.log('所有路由：', router.getRoutes().map(r => r.path));
 //挂载应用到DOM（启动应用）
 app.mount('#app')

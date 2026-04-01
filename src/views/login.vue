@@ -13,19 +13,14 @@
       </div>
     </div>
     <div class="form-container">
-      <el-form
-      ref="ruleformRef"
-      :model="formData"
-      :rules="rules"
-      label-position="top"
-      >
-      <el-form-item>
-        <el-input v-model="formData.username" size="large" placeholder="请输入用户名"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="formData.password" size="large" placeholder="请输入密码" type="password" show-password></el-input>
-      </el-form-item>
-      <el-button class="btn" size="large" type="primary" @click="submitForm(ruleformRef)">登录</el-button>
+      <el-form ref="ruleformRef" :model="formData" :rules="rules" label-position="top">
+        <el-form-item label="用户名或邮箱" prop="username">
+          <el-input v-model="formData.username" size="large" placeholder="请输入用户名"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="formData.password" size="large" placeholder="请输入密码" type="password" show-password />
+        </el-form-item>
+        <el-button class="btn" size="large" type="primary" @click="submitForm(ruleformRef)">登录</el-button>
       </el-form>
       <div class="footer">
         <p>还没有账户？<router-link to="/auth/register">去注册</router-link></p>
@@ -35,9 +30,9 @@
 </template>
 
 <script setup>
-import {ref,reactive} from 'vue'
+import { ref, reactive } from 'vue'
 import { login } from '@/api/admin'
-import {useRouter} from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const ruleformRef = ref()
 
@@ -47,67 +42,75 @@ const formData = reactive({
 })
 
 const rules = reactive({
-   username:[
-    {required:true,message:'请输入用户名',trigger:'blur'}
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
   password: [
-    {required:true,message:'请输入密码',trigger:'blur'}
+    { required: true, message: '请输入密码', trigger: 'blur' }
   ]
 })
 
 const router = useRouter()
-const submitForm = async (forEl)=>{
-  if(!forEl) return
-  await forEl.validate((valid,fields)=>{
-    if(valid) {
-      login(formData).then(data=>{
+const submitForm = async (forEl) => {
+  if (!forEl) return
+  await forEl.validate((valid, fields) => {
+    if (valid) {
+      login(formData).then(data => {
         //判断token是否存在
-        if(!data.token){
+        if (!data.token) {
           return console.error('登录失败')
         }
         //登录成功，保存token和用户信息
-        localStorage.setItem('token',data.token)
-        localStorage.setItem('userInfo',JSON.stringify(data.userInfo))
-      //根据用户角色确定跳转的路径
-      if(data.userInfo.userType===2) {
-        router.push('/back/dashboard')
-      }else {
-        
-      }
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
+        //根据用户角色确定跳转的路径
+        if (data.userInfo.userType === 2) {
+          router.push('/back/dashboard')
+        } else {
+
+        }
       })
     }
   })
 }
 </script>
 
-<style scoped lang="scss" >
+<style scoped lang="scss">
 .container {
   width: 384px;
+
   .title {
     .back-home {
       margin-bottom: 60px;
     }
+
     .title-text {
       text-align: center;
+
       h2 {
         font-size: 36px;
         margin-bottom: 10px;
       }
+
       p {
         font-size: 18px;
         color: #6b7280;
       }
     }
   }
+
   .form-container {
     margin-top: 30px;
+
     .btn {
       margin-top: 40px;
       width: 100%;
     }
+
     .footer {
       margin-top: 40px;
       text-align: center;
+
       p {
         font-size: 18px;
         color: #6b7280;

@@ -113,6 +113,12 @@ router.beforeEach((to, from, next) => {
       }
     } else if (userInfo.userType === 1) {
       //前台
+      // 前台用户
+      if (to.path.startsWith('/back')) {
+        next('/')  // 不允许访问后台，重定向到前台首页
+      } else {
+        next()     // 正常访问前台页面
+      }
 
 
     }
