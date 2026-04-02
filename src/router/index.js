@@ -98,13 +98,13 @@ const router = createRouter({
   routes: [...backendRoutes, ...frontendRoutes]
 })
 
-//路由前置守卫
+// 路由前置守卫
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  //当前用户是否登录
+  // 当前用户是否登录
   if (token) {
     const userInfo = JSON.parse(localStorage.getItem('userInfo'))
-    //后台
+    // 后台
     if (userInfo.userType === 2) {
       if (to.path.startsWith('/back')) {
         next()
@@ -112,12 +112,11 @@ router.beforeEach((to, from, next) => {
         next('/back/dashboard')
       }
     } else if (userInfo.userType === 1) {
-      //前台
-      // 前台用户
-      if (to.path.startsWith('/back')) {
-        next('/')  // 不允许访问后台，重定向到前台首页
+      // 前台
+      if (to.path.startsWith('/back')||to.path.startsWith('/auth')) {
+        next('/')// 不允许访问后台，重定向到前台首页
       } else {
-        next()     // 正常访问前台页面
+        next()// 正常访问前台页面
       }
 
 
