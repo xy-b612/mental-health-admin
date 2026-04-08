@@ -213,6 +213,10 @@ const createNewFrontendSession = () => {
     sessionTitle: '新对话'
   }
   currentSession.value = newSession
+
+  messages.value = []
+  isAiTyping.value = false
+  userMessage.value=''
 }
 
 //定义一个当前会话对象

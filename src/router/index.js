@@ -87,6 +87,11 @@ const frontendRoutes = [
       {
         path: 'knowledge',
         component: () => import('@/views/frontendKnowledge.vue')
+      },
+      {
+        path: 'knowledge/article/:id',
+        component: () => import('@/views/articleDetail.vue'),
+        props: true
       }
     ]
   }
@@ -113,7 +118,7 @@ router.beforeEach((to, from, next) => {
       }
     } else if (userInfo.userType === 1) {
       // 前台
-      if (to.path.startsWith('/back')||to.path.startsWith('/auth')) {
+      if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
         next('/')// 不允许访问后台，重定向到前台首页
       } else {
         next()// 正常访问前台页面
