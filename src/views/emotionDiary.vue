@@ -1,3 +1,4 @@
+<!-- 用户情绪日记页面 -->
 <template>
   <div class="emotionDiary-container">
     <!-- 头部 -->

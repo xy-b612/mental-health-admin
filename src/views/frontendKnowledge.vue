@@ -1,10 +1,11 @@
+<!-- 用户知识库页面 -->
 <template>
   <div class="knowledge-container">
     <!-- 头部 -->
     <div class="header-section">
       <div class="header-content">
         <el-image :src="iconUrl" style="width: 60px;height: 60px;" />
-        <h1>情绪日记</h1>
+        <h1>知识库</h1>
       </div>
     </div>
     <!-- 中间内容 -->

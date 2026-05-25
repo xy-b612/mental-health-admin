@@ -1,3 +1,4 @@
+<!-- 管理数据分析页面 -->
 <template>
   <div class="dashboard-container">
     <el-row :gutter="20">

@@ -1,3 +1,4 @@
+<!-- 侧边栏 -->
 <template>
   <el-aside :width="isCollapse ? '64px' : '264px'">
     <el-menu :collapse="isCollapse" :collapse-transition="false" default-active="2" class="menu-style" router>

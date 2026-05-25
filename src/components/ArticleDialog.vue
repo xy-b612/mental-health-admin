@@ -1,3 +1,4 @@
+<!-- 文章新增/编辑弹窗组件 -->
 <template>
   <el-dialog :title="isEdit ? '编辑文章' : '新增文章'" v-model="dialogVisible" width="50%" @close="handleClose">
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">

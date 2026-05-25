@@ -1,3 +1,4 @@
+<!-- 用户AI咨询页面 -->
 <template>
   <div class="consultation-container">
     <!-- 左侧 -->
@@ -19,8 +20,8 @@
           <div class="garden-title">情绪花园</div>
         </div>
         <div class="emotion-info">
-          <div class="emotion-name">中性</div>
-          <div class="emotion-score">50</div>
+          <div class="emotion-name">{{ currentEmotion.primaryEmotion }}</div>
+          <div class="emotion-score">{{ currentEmotion.emotionScore }}</div>
         </div>
         <div class="warm-tips">
           <div class="emotion-status-text">
@@ -57,7 +58,7 @@
           </div>
           <!-- 风险提示 -->
           <div class="risk-notice" v-if="currentEmotion.isNegative && currentEmotion.riskLevel > 1">
-            <div class="notice-icon">🤗</div>
+            <div class="notice-icon">{{ currentEmotion.icon }}</div>
             <div class="notice-content">
               <div class="notice-title">温馨提示</div>
               <div class="notice-text">{{ currentEmotion.riskDescription }}</div>
@@ -70,7 +71,7 @@
         <h4 class="session-title">会话列表</h4>
         <div class="session-list">
           <div v-for="session in sessionList" :key="session.id" @click="handleSessionClick(session)"
-            class="session-item">
+            class="session-item" :class="{ active: currentSession?.sessionId === 'session_' + session.id }">
             <div class="session-info">
               <div class="session-title">
                 <span>{{ session.sessionTitle }}</span>
@@ -216,7 +217,7 @@ const createNewFrontendSession = () => {
 
   messages.value = []
   isAiTyping.value = false
-  userMessage.value=''
+  userMessage.value = ''
 }
 
 //定义一个当前会话对象
@@ -244,7 +245,7 @@ const loadSessionEmotion = (sessionId) => {
   //确保sessionID格式正确
   const id = sessionId.toString().startsWith('session_') ? sessionId : `session_${sessionId}`
   getSessionEmotion(id).then(res => {
-    console.log(res)
+    // console.log('会话数据',res)
     currentEmotion.value = res
   })
 }

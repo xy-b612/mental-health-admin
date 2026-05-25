@@ -1,3 +1,4 @@
+<!-- 注册页面 -->
 <template>
   <div class="container">
     <div class="title">

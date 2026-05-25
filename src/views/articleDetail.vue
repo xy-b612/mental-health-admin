@@ -1,3 +1,4 @@
+<!-- 知识文章详情页 -->
 <template>
   <div class="articleDetail-container">
     <!-- 头部 -->

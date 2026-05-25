@@ -1,3 +1,4 @@
+<!-- 管理知识文章页面 -->
 <template>
   <div>
     <PageHead title="知识文章">

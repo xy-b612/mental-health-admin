@@ -1,3 +1,4 @@
+<!-- 管理情绪日志页面 -->
 <template>
   <div>
     <PageHead title="情绪日志" />

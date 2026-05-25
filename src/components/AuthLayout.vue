@@ -1,5 +1,7 @@
+<!-- 登录注册布局 -->
 <template>
   <div class="auth-layout">
+    <!-- 左侧品牌 -->
     <div class="left-section">
       <div class="content">
         <h2 class="title">心理AI助手</h2>
@@ -9,6 +11,7 @@
         </div>
       </div>
     </div>
+    <!-- 右侧内容 -->
     <div class="right-section">
       <router-view></router-view>
     </div>

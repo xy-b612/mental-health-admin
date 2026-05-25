@@ -1,3 +1,4 @@
+<!-- 用户端布局 -->
 <template>
   <div class="frontend-layout">
     <!-- 导航栏 -->
@@ -38,7 +39,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { logout } from '@/api/admin.js'
-import { useRouter } from 'vue-router' 
+import { useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus'
 
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
 
@@ -47,12 +49,22 @@ const isLoggedIn = ref(false)
 // 登出
 const router = useRouter()
 const handleLogout = () => {
-  logout().then(()=>{
-    // 清除缓存
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    // 跳转到登录页
-    router.push('/auth/login')
+  ElMessageBox.confirm(
+    '确认退出登录吗？',
+    '提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    logout().then(() => {
+      // 清除缓存
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      // 跳转到登录页
+      router.push('/auth/login')
+    }).catch(err => {
+      ElMessage.error('退出失败，请重试')
+    })
   })
 }
 

@@ -53,6 +53,8 @@ const handleCommand = (command) => {
         localStorage.removeItem('userInfo')
         //跳转到登录页
         router.push('/auth/login')
+      }).catch(err => {
+        ElMessage.error('退出失败，请重试')
       })
     })
   }

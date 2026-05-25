@@ -1,3 +1,4 @@
+<!-- Markdown渲染组件 -->
 <template>
   <div class="markdown-content" :class="{ 'ai-markdown': isAiMessage }">
     <div v-html="renderedContent"></div>

@@ -1,3 +1,4 @@
+<!-- 管理咨询记录页面 -->
 <template>
   <div>
     <PageHead title="咨询记录" />

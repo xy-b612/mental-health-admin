@@ -1,3 +1,4 @@
+<!-- 页面标题组件 -->
 <template>
   <div class="page-head">
     <p class="page-title">{{ props.title }}</p>

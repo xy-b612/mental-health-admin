@@ -1,3 +1,4 @@
+<!-- 富文本编辑器组件 -->
 <template>
   <div class="rich-text-editor">
     <!-- 富文本编辑器 -->
