@@ -46,11 +46,10 @@
 
 ## 🖼 项目截图
 
-![AI聊天界面](./src/assets/images/ai-chat.png)  
-![情绪日记 - 评分界面](./src/assets/images/emotion-diary.png)
-![情绪日记 - 历史记录](./src/assets/images/emotion-diary2.png)
-![后台数据分析](./src/assets/images/dashboard.png)
-![知识文章](./src/assets/images/knowledge.png)
+![AI聊天界面](./src/assets/images/ai咨询.png)  
+![情绪日记](./src/assets/images/情绪日志.png)
+![后台数据分析](./src/assets/images/数据分析.png)
+![知识文章](./src/assets/images/知识文章.png)
 
 ## 🔌 后端接口配置
 
