@@ -6,7 +6,7 @@
         <el-icon>
           <Back />
         </el-icon>
-        <span>返回首页</span>
+        <span><router-link to="/">返回首页</router-link></span>
       </div>
       <div class="title-text">
         <h2>登录您的账户</h2>
@@ -59,7 +59,8 @@ const submitForm = async (forEl) => {
       login(formData).then(data => {
         //判断token是否存在
         if (!data.token) {
-          return console.error('登录失败')
+          ElMessage.error('登录失败')
+          return
         }
         //登录成功，保存token和用户信息
         localStorage.setItem('token', data.token)

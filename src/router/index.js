@@ -123,13 +123,10 @@ router.beforeEach((to, from, next) => {
       } else {
         next()// 正常访问前台页面
       }
-
-
     }
-
-
-
-  } else {
+  }
+  
+  else {
     if (to.path.startsWith('/back')) {
       //后台管理跳转回登录页面
       next('/auth/login')
