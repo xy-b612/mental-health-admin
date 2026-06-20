@@ -54,26 +54,26 @@ const rules = reactive({
 const router = useRouter()
 const submitForm = async (forEl) => {
   if (!forEl) return
-  await forEl.validate((valid, fields) => {
-    if (valid) {
-      login(formData).then(data => {
-        //判断token是否存在
-        if (!data.token) {
-          ElMessage.error('登录失败')
-          return
-        }
-        //登录成功，保存token和用户信息
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
-        //根据用户角色确定跳转的路径
-        if (data.userInfo.userType === 2) {
-          router.push('/back/dashboard')
-        } else {
-          router.push('/')
-        }
-      })
+  //校验表单
+  const valid = await forEl.validate()
+  if (!valid) return
+  try {
+    const data = await login(formData)
+    //判断token是否存在
+    if (!data.token) {
+      ElMessage.error('登录失败')
+      return
     }
-  })
+    //登录成功，保存token和用户信息
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
+    ElMessage.success('登录成功')
+    //根据用户角色确定跳转的路径
+    router.push(data.userInfo.userType === 2 ? '/back/dashboard' : '/')
+  } catch (error) {
+    ElMessage.error(error?.message || '网络异常，请检查账号密码')
+    return
+  }
 }
 </script>
 
