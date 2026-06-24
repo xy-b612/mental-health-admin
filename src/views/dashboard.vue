@@ -118,36 +118,67 @@
 
 <script setup>
 import { getAnalyticsOverview } from '@/api/admin.js'
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, onBeforeUnmount } from 'vue';
+import * as echarts from 'echarts'
+
 //统计图片引入
 const iconUrl1 = new URL('@/assets/images/users.png', import.meta.url).href
 const iconUrl2 = new URL('@/assets/images/like.png', import.meta.url).href
 const iconUrl3 = new URL('@/assets/images/comments.png', import.meta.url).href
 const iconUrl4 = new URL('@/assets/images/smile.png', import.meta.url).href
-import * as echarts from 'echarts'
 
 const aiData = ref({})
 
-//初始化图标
+// 图表DOM Ref
+const emotionChartRef = ref(null)
+const consultationChartRef = ref(null)
+const userActivityChartRef = ref(null)
+
+// 全局图表实例
+let emotionChart = null
+let consultationChart = null
+let userActivityChart = null
+
+// resize防抖定时器
+let resizeTimer = null
+const DEBOUNCE_DELAY = 100
+
+// 窗口自适应 防抖函数
+const handleWindowResize = () => {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    emotionChart?.resize()
+    consultationChart?.resize()
+    userActivityChart?.resize()
+  }, DEBOUNCE_DELAY)
+}
+
+// 统一销毁所有图表
+const disposeAllChart = () => {
+  emotionChart?.dispose()
+  consultationChart?.dispose()
+  userActivityChart?.dispose()
+  emotionChart = null
+  consultationChart = null
+  userActivityChart = null
+}
+
+//初始化所有图表
 const initCharts = () => {
   initemotionChart()
   initconsultationChart()
   inituserActivityChart()
 }
+
 //情绪趋势
-let emotionChart = null
-const emotionChartRef = ref(null)
 const initemotionChart = () => {
   if (!emotionChartRef.value) return
-  //销毁现有图表
-  if (emotionChart) {
-    emotionChart.dispose()
-  }
-  //创建echarts实例
+  // 销毁旧实例
+  if (emotionChart) emotionChart.dispose()
   emotionChart = echarts.init(emotionChartRef.value)
-  //获取情绪趋势数据
-  const TrendData = aiData.value.emotionTrend
-  //配置项
+
+  // 数据兜底，防止不存在报错
+  const TrendData = aiData.value.emotionTrend || []
   const option = {
     title: {
       text: '情绪趋势分析',
@@ -171,7 +202,7 @@ const initemotionChart = () => {
       data: ['平均情绪评分', '记录数量'],
       top: 40
     },
-    grid: {//控制容器样式
+    grid: {
       left: '3%',
       right: '4%',
       top: 80,
@@ -198,7 +229,7 @@ const initemotionChart = () => {
     }, {
       type: 'value',
       name: '记录数量',
-      position: 'rigth',
+      position: 'right',
       axisLine: {
         lineStyle: {
           color: '#2d3436'
@@ -210,51 +241,32 @@ const initemotionChart = () => {
       type: 'line',
       data: TrendData.map(item => item.avgMoodScore),
       smooth: true,
-      lineStyle: {
-        width: 3,
-        color: '#faebaf'
-      },
-      itemStyle: {
-        color: '#faebaf'
-      }
+      lineStyle: { width: 3, color: '#faebaf' },
+      itemStyle: { color: '#faebaf' }
     }, {
       name: '记录数量',
       type: 'line',
       data: TrendData.map(item => item.recordCount),
       smooth: true,
-      lineStyle: {
-        width: 3,
-        color: '#eeb5a3'
-      },
-      itemStyle: {
-        color: '#eeb5a3'
-      }
+      lineStyle: { width: 3, color: '#eeb5a3' },
+      itemStyle: { color: '#eeb5a3' }
     }]
   }
   emotionChart.setOption(option)
 }
+
 //会话统计
-let consultationChart = null
-const consultationChartRef = ref(null)
 const initconsultationChart = () => {
   if (!consultationChartRef.value) return
-  //销毁现有图表
-  if (consultationChart) {
-    consultationChart.dispose()
-  }
-  //创建echarts实例
+  if (consultationChart) consultationChart.dispose()
   consultationChart = echarts.init(consultationChartRef.value)
-  //获取数据
-  const dailyTrend = aiData.value.consultationStats.dailyTrend
-  //配置项
+
+  const stats = aiData.value.consultationStats || {}
+  const dailyTrend = stats.dailyTrend || []
   const option = {
     title: {
       text: '咨询活动统计',
-      textStyle: {
-        fontSize: 16,
-        fontWeight: 600,
-        color: '#2d3436'
-      },
+      textStyle: { fontSize: 16, fontWeight: 600, color: '#2d3436' },
       left: 'center',
       top: 10
     },
@@ -263,16 +275,12 @@ const initconsultationChart = () => {
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#fab1a0',
       borderWidth: 1,
-      textStyle: {
-        color: '#2d3436'
-      }
+      textStyle: { color: '#2d3436' }
     },
     legend: {
       data: ['会话数量', '参与用户数'],
       top: 40,
-      textStyle: {
-        color: '#636e72'
-      }
+      textStyle: { color: '#636e72' }
     },
     grid: {
       left: '3%',
@@ -284,30 +292,14 @@ const initconsultationChart = () => {
     xAxis: {
       type: 'category',
       data: dailyTrend.map(item => item.date),
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.3)'
-        }
-      },
-      axisLabel: {
-        color: '#636e72'
-      }
+      axisLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.3)' } },
+      axisLabel: { color: '#636e72' }
     },
     yAxis: {
       type: 'value',
-      axisLabel: {
-        color: '#636e72'
-      },
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.3)'
-        }
-      },
-      splitLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.1)'
-        }
-      }
+      axisLabel: { color: '#636e72' },
+      axisLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.3)' } },
+      splitLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.1)' } }
     },
     series: [
       {
@@ -317,14 +309,8 @@ const initconsultationChart = () => {
         itemStyle: {
           color: {
             type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: '#74b9ff' },
-              { offset: 1, color: '#0984e3' }
-            ]
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: '#74b9ff' }, { offset: 1, color: '#0984e3' }]
           }
         },
         barWidth: '40%'
@@ -336,14 +322,8 @@ const initconsultationChart = () => {
         itemStyle: {
           color: {
             type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: '#fdcb6e' },
-              { offset: 1, color: '#f39c12' }
-            ]
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: '#fdcb6e' }, { offset: 1, color: '#f39c12' }]
           }
         },
         barWidth: '40%'
@@ -352,28 +332,18 @@ const initconsultationChart = () => {
   }
   consultationChart.setOption(option)
 }
+
 //用户活跃度分析
-let userActivityChart = null
-const userActivityChartRef = ref(null)
 const inituserActivityChart = () => {
   if (!userActivityChartRef.value) return
-  //销毁现有图表
-  if (userActivityChart) {
-    userActivityChart.dispose()
-  }
-  //创建echarts实例
+  if (userActivityChart) userActivityChart.dispose()
   userActivityChart = echarts.init(userActivityChartRef.value)
-  //获取数据
-  const activityData = aiData.value.userActivity
-  //配置项
+
+  const activityData = aiData.value.userActivity || []
   const option = {
     title: {
       text: '用户活跃度趋势',
-      textStyle: {
-        fontSize: 16,
-        fontWeight: 600,
-        color: '#2d3436'
-      },
+      textStyle: { fontSize: 16, fontWeight: 600, color: '#2d3436' },
       left: 'center',
       top: 10
     },
@@ -382,16 +352,12 @@ const inituserActivityChart = () => {
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#fab1a0',
       borderWidth: 1,
-      textStyle: {
-        color: '#2d3436'
-      }
+      textStyle: { color: '#2d3436' }
     },
     legend: {
       data: ['活跃用户', '新增用户', '日记用户', '咨询用户'],
       top: 40,
-      textStyle: {
-        color: '#636e72'
-      }
+      textStyle: { color: '#636e72' }
     },
     grid: {
       left: '3%',
@@ -403,30 +369,14 @@ const inituserActivityChart = () => {
     xAxis: {
       type: 'category',
       data: activityData.map(item => item.date),
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.3)'
-        }
-      },
-      axisLabel: {
-        color: '#636e72'
-      }
+      axisLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.3)' } },
+      axisLabel: { color: '#636e72' }
     },
     yAxis: {
       type: 'value',
-      axisLabel: {
-        color: '#636e72'
-      },
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.3)'
-        }
-      },
-      splitLine: {
-        lineStyle: {
-          color: 'rgba(244, 162, 97, 0.1)'
-        }
-      }
+      axisLabel: { color: '#636e72' },
+      axisLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.3)' } },
+      splitLine: { lineStyle: { color: 'rgba(244, 162, 97, 0.1)' } }
     },
     series: [
       {
@@ -434,24 +384,12 @@ const inituserActivityChart = () => {
         type: 'line',
         data: activityData.map(item => item.activeUsers),
         smooth: true,
-        lineStyle: {
-          width: 3,
-          color: '#a29bfe'
-        },
-        itemStyle: {
-          color: '#a29bfe'
-        },
+        lineStyle: { width: 3, color: '#a29bfe' },
+        itemStyle: { color: '#a29bfe' },
         areaStyle: {
           color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(162, 155, 254, 0.4)' },
-              { offset: 1, color: 'rgba(162, 155, 254, 0.1)' }
-            ]
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(162, 155, 254, 0.4)' }, { offset: 1, color: 'rgba(162, 155, 254, 0.1)' }]
           }
         }
       },
@@ -460,39 +398,24 @@ const inituserActivityChart = () => {
         type: 'line',
         data: activityData.map(item => item.newUsers),
         smooth: true,
-        lineStyle: {
-          width: 3,
-          color: '#fdcb6e'
-        },
-        itemStyle: {
-          color: '#fdcb6e'
-        }
+        lineStyle: { width: 3, color: '#fdcb6e' },
+        itemStyle: { color: '#fdcb6e' }
       },
       {
         name: '日记用户',
         type: 'line',
         data: activityData.map(item => item.diaryUsers),
         smooth: true,
-        lineStyle: {
-          width: 3,
-          color: '#00b894'
-        },
-        itemStyle: {
-          color: '#00b894'
-        }
+        lineStyle: { width: 3, color: '#00b894' },
+        itemStyle: { color: '#00b894' }
       },
       {
         name: '咨询用户',
         type: 'line',
         data: activityData.map(item => item.consultationUsers),
         smooth: true,
-        lineStyle: {
-          width: 3,
-          color: '#fab1a0'
-        },
-        itemStyle: {
-          color: '#fab1a0'
-        }
+        lineStyle: { width: 3, color: '#fab1a0' },
+        itemStyle: { color: '#fab1a0' }
       }
     ]
   }
@@ -501,10 +424,21 @@ const inituserActivityChart = () => {
 
 onMounted(() => {
   getAnalyticsOverview().then(res => {
-    console.log(res);
     aiData.value = res
     initCharts()
+    // 绑定窗口缩放监听
+    window.addEventListener('resize', handleWindowResize)
   })
+})
+
+// 页面/路由切换销毁图表、清空监听、定时器
+onBeforeUnmount(() => {
+  // 移除resize监听
+  window.removeEventListener('resize', handleWindowResize)
+  // 清除防抖定时器
+  clearTimeout(resizeTimer)
+  // 销毁全部echarts实例释放内存
+  disposeAllChart()
 })
 </script>
 
